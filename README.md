@@ -60,6 +60,7 @@ volumes:
 - SQL-запрос для выдачи списка пользователей с правами над таблицами test_db;
 - список пользователей с правами над таблицами test_db.
 
+---
 ### Ответ
 - итоговый список БД после выполнения пунктов выше:
 
@@ -80,6 +81,8 @@ where t.grantee!='postgres' and t.grantee!='PUBLIC';
 - список пользователей с правами над таблицами test_db:
 
 ![Screenshot2_3](https://github.com/megasts/06-db-02-sql/blob/main/img/Screenshot2_3.png)
+
+---
 
 ## Задача 3
 
@@ -112,6 +115,50 @@ where t.grantee!='postgres' and t.grantee!='PUBLIC';
 
     - запросы,
     - результаты их выполнения.
+
+---
+### Ответ
+1. 
+```sql
+insert into orders (name, price) values ('Шоколад', 10),
+('Принтеp', 3000),
+('Книга', 500),
+('Монитор', 7000),
+('Гитара', 4000)
+;
+select * from orders;
+```
+
+![Screenshot3_1](https://github.com/megasts/06-db-02-sql/blob/main/img/Screenshot3_1.png)
+
+2. 
+```sql
+insert into clients (last_name, country) values
+('Иванов Иван Иванович', 'USA'),
+('Петров Петр Петрович', 'Canada'),
+('Иоганн Себастьян Бах', 'Japan'),
+('Ронни Джеймс Дио', 'Russia'),
+('Ritchie Blackmore', 'Russia')
+;
+select * from clients;
+```
+
+![Screenshot3_2](https://github.com/megasts/06-db-02-sql/blob/main/img/Screenshot3_2.png)
+
+3.
+```sql
+select count(orders.id) кол_во_записей_таблицы_заказов
+from orders
+;
+select count(clients.id) кол_во_записей_таблицы_клиентов
+from clients
+;
+```
+
+![Screenshot3_3](https://github.com/megasts/06-db-02-sql/blob/main/img/Screenshot3_3.png)
+
+---
+
 
 ## Задача 4
 
