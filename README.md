@@ -18,7 +18,7 @@ services:
       - "5432:5432"
     volumes:
     - pg_data:/var/lib/postgresql/data/pgdata
-    - pg_backups:/backups
+    - /home/megion/Projects/sql/backups:/backups
     environment:
       POSTGRES_USER:  postgres
       POSTGRES_PASSWORD:  test123!
@@ -26,7 +26,6 @@ services:
     restart:  always
 volumes:
   pg_data:
-  pg_backups:
 
 ```
 
@@ -178,12 +177,56 @@ from clients
  
 Подсказка: используйте директиву `UPDATE`.
 
+---
+### Ответ
+
+1. SQL-запросы:
+```sql
+UPDATE clients SET orderid = (
+	SELECT id 
+	FROM orders o
+	WHERE o.name='Книга'
+)
+WHERE last_name ='Иванов Иван Иванович'
+;
+UPDATE clients SET orderid = (SELECT id	FROM orders o WHERE o.name='Монитор') WHERE last_name ='Петров Петр Петрович';
+UPDATE clients SET orderid = (SELECT id	FROM orders o WHERE o.name='Гитара') WHERE last_name ='Иоганн Себастьян Бах';
+```
+
+2. SQL-запрос для выдачи всех пользователей, которые совершили заказ:
+
+```sql
+select c.last_name as пользователи_совершили_заказ, o.name as наименование_заказа
+from clients c
+join orders o on o.id=c.orderid;
+```
+
+вывод этого запроса:
+
+![Screenshot4_1](https://github.com/megasts/06-db-02-sql/blob/main/img/Screenshot4_1.png)
+
+---
+
 ## Задача 5
 
 Получите полную информацию по выполнению запроса выдачи всех пользователей из задачи 4 
 (используя директиву EXPLAIN).
 
 Приведите получившийся результат и объясните, что значат полученные значения.
+
+---
+### Ответ
+
+![Screenshot5_1](https://github.com/megasts/06-db-02-sql/blob/main/img/Screenshot5_1.png)
+
+Полученные данные представляют собой план запроса: как postgresql планирует выпонять запрос (не изменяетсяя от запуска к запуску), корме того можно оценить "стоимость" запроса в целом и каждой операции в отдельности.
+1. Построчно прочитана таблица orders (Seq Scan on orders)
+2. Построена Hash таблица данных из таблицы orders (Hash)
+3. Построчно прочитана таблица clients (Seq Scan on clients)
+4. Построена итоговая таблица на основе Hash соединения двух таблиц с провекой условия Hash Cond (Hash Cond: (c.orderid = o.id))
+
+---
+
 
 ## Задача 6
 
@@ -196,6 +239,52 @@ from clients
 Восстановите БД test_db в новом контейнере.
 
 Приведите список операций, который вы применяли для бэкапа данных и восстановления. 
+
+---
+### Ответ
+
+Создайте бэкап БД test_db и поместите его в volume, предназначенный для бэкапов (см. задачу 1).
+
+```
+# pg_dumpall -U postgres > /backups/test_db_backup.sql
+```
+
+Остановите контейнер с PostgreSQL, но не удаляйте volumes.
+
+```
+$ docker stop postgreSQL
+```
+
+Поднимите новый пустой контейнер с PostgreSQL.
+
+docker-compose-манифест:
+```
+version: '3'
+services:
+  postgreSQL:
+    image:  postgres:12
+    container_name: pg_restor
+    ports:
+      - "5432:5432"
+    volumes:
+    - /home/megion/Projects/sql/backups:/backups
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD:  test123!
+    restart:  always
+```
+
+```
+$ docker compose -f "/home/megion/Projects/sql_from_backup/docker-compose.yml" up -d --buil
+```
+
+Восстановите БД test_db в новом контейнере.
+
+```
+$ docker exec -it pg_restor bash
+
+# psql -U postgres < /backups/test_db_backup.sql
+```
 
 ---
 
